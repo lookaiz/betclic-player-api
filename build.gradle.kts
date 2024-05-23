@@ -55,8 +55,6 @@ dependencies {
     testImplementation("org.testcontainers:localstack:$localstack_version")
 
     // Test Koin
-//    testImplementation("io.insert-koin:koin-test:3.5.6")
-//    testImplementation("io.insert-koin:koin-test-junit5:3.5.6")
     testImplementation("io.insert-koin:koin-test")
     testImplementation("io.insert-koin:koin-test-junit5")
 
@@ -67,18 +65,8 @@ dependencies {
     // Test JUnit
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.2")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.2")
-
-
 }
 
 tasks.test {
     useJUnitPlatform()
 }
-
-//tasks.register<Exec>("runServer") {
-//    val mainClass = "com.betclic.Application"
-//    classpath(sourceSets.getByName("main").runtimeClasspath)
-//    classpath(files(kotlin.target.compiledClasspath))
-//    main = mainClass
-//    args("-P", "dev")
-//}
