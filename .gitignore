@@ -43,3 +43,7 @@ out/
 localstack/!/docker/localstack/
 !/infra/terraform.tfstate
 !/infra/terraform.tfstate.backup
+/infra/.terraform.lock.hcl
+/docker/localstack/cache/**
+/infra/terraform.tfstate
+/infra/terraform.tfstate.backup

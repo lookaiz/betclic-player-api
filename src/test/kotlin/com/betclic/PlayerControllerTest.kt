@@ -12,7 +12,6 @@ import io.ktor.server.application.*
 import io.ktor.server.config.*
 import io.ktor.server.testing.*
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.koin.core.context.startKoin
@@ -49,10 +48,14 @@ fun configureTestKoin() {
     }
 }
 
-private val APP_CONFIG = MapApplicationConfig(
-    "ktor.dynamodb.endpoint" to "http://0.0.0.0:4566",
-    "ktor.dynamodb.region" to "af-south-1"
-)
+fun <R> withTestApplication(test: suspend ApplicationTestBuilder.() -> R) = testApplication {
+    environment { config = MapApplicationConfig(
+        "ktor.dynamodb.endpoint" to "http://0.0.0.0:4566",
+        "ktor.dynamodb.region" to "af-south-1")
+    }
+    application { testModule() }
+    test()
+}
 
 class PlayerControllerTest : AutoCloseKoinTest() {
 
@@ -67,188 +70,136 @@ class PlayerControllerTest : AutoCloseKoinTest() {
     }
 
     @Test
-    fun `test_POST_Add player_Already existing player should return 409`(): Unit = runBlocking {
+    fun `test_POST_Add player_Already existing player should return 409`(): Unit = withTestApplication {
         given(playerServiceMock.addPlayer(anyString(), anyInt())).willThrow(PlayerAlreadyExistsException::class.java)
 
-        testApplication {
-            environment { config = APP_CONFIG }
-            application { testModule() }
-
-            client.post("/player") {
-                contentType(ContentType.Application.Json)
-                setBody("""{"pseudo":"Clyde", "score": 4}""")
-            }.apply {
-                assertEquals(HttpStatusCode.Conflict, status)
-            }
+        client.post("/player") {
+            contentType(ContentType.Application.Json)
+            setBody("""{"pseudo":"Clyde", "score": 4}""")
+        }.apply {
+            assertEquals(HttpStatusCode.Conflict, status)
         }
         Mockito.verify(playerServiceMock, Mockito.times(1)).addPlayer("Clyde", 4)
     }
 
     @Test
-    fun `test_POST_Add player_Invalid player payload should return 400`(): Unit = runBlocking {
-        testApplication {
-            environment { config = APP_CONFIG }
-            application { testModule() }
-
-            client.post("/player") {
-                contentType(ContentType.Application.Json)
-                setBody("""{"nickname":"Clyde"}""")
-            }.apply {
-                assertEquals(HttpStatusCode.BadRequest, status)
-            }
+    fun `test_POST_Add player_Invalid player payload should return 400`(): Unit = withTestApplication {
+        client.post("/player") {
+            contentType(ContentType.Application.Json)
+            setBody("""{"nickname":"Clyde"}""")
+        }.apply {
+            assertEquals(HttpStatusCode.BadRequest, status)
         }
         Mockito.verify(playerServiceMock, Mockito.never()).addPlayer(anyString(), anyInt())
     }
 
     @Test
-    fun `test_POST_Add player_Nominal case (pseudo and score) should return 201`(): Unit = runBlocking {
+    fun `test_POST_Add player_Nominal case (pseudo and score) should return 201`(): Unit = withTestApplication {
         val deferred = CompletableDeferred<Unit>()
         deferred.complete(Unit)
         doAnswer { _ -> deferred }.`when`(playerServiceMock).addPlayer(anyString(), anyInt())
 
-        testApplication {
-            environment { config = APP_CONFIG }
-            application { testModule() }
-
-            client.post("/player") {
-                contentType(ContentType.Application.Json)
-                setBody("""{"pseudo":"Clyde", "score": 6}""")
-            }.apply {
-                assertEquals(HttpStatusCode.Created, status)
-            }
+        client.post("/player") {
+            contentType(ContentType.Application.Json)
+            setBody("""{"pseudo":"Clyde", "score": 6}""")
+        }.apply {
+            assertEquals(HttpStatusCode.Created, status)
         }
         Mockito.verify(playerServiceMock, Mockito.times(1)).addPlayer("Clyde",6)
     }
 
     @Test
-    fun `test_POST_Add player_Nominal case (pseudo only) should return 201`(): Unit = runBlocking {
+    fun `test_POST_Add player_Nominal case (pseudo only) should return 201`(): Unit = withTestApplication {
         val deferred = CompletableDeferred<Unit>()
         deferred.complete(Unit)
         doAnswer { _ -> deferred }.`when`(playerServiceMock).addPlayer(anyString(), anyInt())
 
-        testApplication {
-            environment { config = APP_CONFIG }
-            application { testModule() }
-
-            client.post("/player") {
-                contentType(ContentType.Application.Json)
-                setBody("""{"pseudo":"Clyde"}""")
-            }.apply {
-                assertEquals(HttpStatusCode.Created, status)
-            }
+        client.post("/player") {
+            contentType(ContentType.Application.Json)
+            setBody("""{"pseudo":"Clyde"}""")
+        }.apply {
+            assertEquals(HttpStatusCode.Created, status)
         }
         Mockito.verify(playerServiceMock, Mockito.times(1)).addPlayer("Clyde",0)
     }
 
     @Test
-    fun `test_PUT_Update player_Unknown player should return 404`(): Unit = runBlocking {
+    fun `test_PUT_Update player_Unknown player should return 404`(): Unit = withTestApplication {
         given(playerServiceMock.updatePlayerScore(anyString(), anyInt())).willThrow(PlayerNotFoundException::class.java)
 
-        testApplication {
-            environment { config = APP_CONFIG }
-            application { testModule() }
-
-            client.put("/player") {
-                contentType(ContentType.Application.Json)
-                setBody("""{"pseudo":"Barrow", "score": 66}""")
-            }.apply {
-                assertEquals(HttpStatusCode.NotFound, status)
-            }
+        client.put("/player") {
+            contentType(ContentType.Application.Json)
+            setBody("""{"pseudo":"Barrow", "score": 66}""")
+        }.apply {
+            assertEquals(HttpStatusCode.NotFound, status)
         }
         Mockito.verify(playerServiceMock, Mockito.times(1)).updatePlayerScore("Barrow",66)
     }
 
 
     @Test
-    fun `test_PUT_Update player_Nominal case should return 200`(): Unit = runBlocking {
+    fun `test_PUT_Update player_Nominal case should return 200`(): Unit = withTestApplication {
         val deferred = CompletableDeferred<Unit>()
         deferred.complete(Unit)
         doAnswer { _ -> deferred }.`when`(playerServiceMock).updatePlayerScore(anyString(), anyInt())
 
-        testApplication {
-            environment { config = APP_CONFIG }
-            application { testModule() }
-
-            client.put("/player") {
-                contentType(ContentType.Application.Json)
-                setBody("""{"pseudo":"Bonnie", "score": 24}""")
-            }.apply {
-                assertEquals(HttpStatusCode.OK, status)
-            }
+        client.put("/player") {
+            contentType(ContentType.Application.Json)
+            setBody("""{"pseudo":"Bonnie", "score": 24}""")
+        }.apply {
+            assertEquals(HttpStatusCode.OK, status)
         }
         Mockito.verify(playerServiceMock, Mockito.times(1)).updatePlayerScore("Bonnie",24)
     }
 
 
     @Test
-    fun `test_GET_Get all players_Nominal case should return 200`(): Unit = runBlocking {
+    fun `test_GET_Get all players_Nominal case should return 200`(): Unit = withTestApplication {
         given(playerServiceMock.getAllSortedPlayers()).willReturn(listOf())
 
-        testApplication {
-            environment { config = APP_CONFIG }
-            application { testModule() }
-
-            client.get("/players").apply {
-                assertEquals(HttpStatusCode.OK, status)
-            }
+        client.get("/players").apply {
+            assertEquals(HttpStatusCode.OK, status)
         }
         Mockito.verify(playerServiceMock, Mockito.times(1)).getAllSortedPlayers()
     }
 
     @Test
-    fun `test_GET_Get player_Unknown Pseudo should return 404`(): Unit = runBlocking {
+    fun `test_GET_Get player_Unknown Pseudo should return 404`(): Unit = withTestApplication {
         given(playerServiceMock.getPlayer(anyString())).willThrow(PlayerNotFoundException::class.java)
 
-        testApplication {
-            environment { config = APP_CONFIG }
-            application { testModule() }
-            client.get("/player/unknown_pseudo").apply {
-                assertEquals(HttpStatusCode.NotFound, status)
-            }
+        client.get("/player/unknown_pseudo").apply {
+            assertEquals(HttpStatusCode.NotFound, status)
         }
         Mockito.verify(playerServiceMock, Mockito.times(1)).getPlayer("unknown_pseudo")
     }
 
     @Test
-    fun `test_GET player_Empty Pseudo should return 400`(): Unit = runBlocking {
-        testApplication {
-            environment { config = APP_CONFIG }
-            application { testModule() }
-            client.get("/player/").apply {
-                assertEquals(HttpStatusCode.BadRequest, status)
-            }
+    fun `test_GET player_Empty Pseudo should return 400`(): Unit = withTestApplication {
+        client.get("/player/").apply {
+            assertEquals(HttpStatusCode.BadRequest, status)
         }
         Mockito.verify(playerServiceMock, Mockito.never()).getPlayer(anyString())
     }
 
     @Test
-    fun `test_GET_Get player_Nominal case should return 200`(): Unit = runBlocking {
+    fun `test_GET_Get player_Nominal case should return 200`(): Unit = withTestApplication {
         val hamilton = PlayerDTO(pseudo = "hamilton", score = 12, rank = 3)
         given(playerServiceMock.getPlayer("hamilton")).willReturn(hamilton)
 
-        testApplication {
-            environment { config = APP_CONFIG }
-            application { testModule() }
-            client.get("/player/hamilton").apply {
-                assertEquals(HttpStatusCode.OK, status)
-            }
+        client.get("/player/hamilton").apply {
+            assertEquals(HttpStatusCode.OK, status)
         }
         Mockito.verify(playerServiceMock, Mockito.times(1)).getPlayer("hamilton")
     }
 
     @Test
-    fun `test_DELETE_Delete all players_Nominal case should return 200`(): Unit = runBlocking {
+    fun `test_DELETE_Delete all players_Nominal case should return 200`(): Unit = withTestApplication {
         val deferred = CompletableDeferred<Unit>()
         deferred.complete(Unit)
         doAnswer { _ -> deferred }.`when`(playerServiceMock).deleteAllPlayers()
 
-        testApplication {
-            environment { config = APP_CONFIG }
-            application { testModule() }
-
-            client.delete("/players").apply {
-                assertEquals(HttpStatusCode.OK, status)
-            }
+        client.delete("/players").apply {
+            assertEquals(HttpStatusCode.OK, status)
         }
         Mockito.verify(playerServiceMock, Mockito.times(1)).deleteAllPlayers()
     }

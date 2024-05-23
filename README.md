@@ -51,7 +51,7 @@ This application is based upon following technologies :
 ```
 DYNAMODB_ENDPOINT=http://localhost:4566
 ```
-5. Build then launch Ktor server packaged as FatJar. The server is available on port 8080 by default
+5. Build then launch Ktor server packaged as FatJar.
 ```
 ./startServer.sh
 ```
@@ -103,6 +103,8 @@ Update player score
 The payload should be a JSON object with the following properties:
 * `pseudo`: (required) a string containing the player's nickame
 * `score`: (required) a string containing the player's score.
+
+*Body example :*
 ```json
 {
   "pseudo": "John",
