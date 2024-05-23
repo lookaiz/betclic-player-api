@@ -73,6 +73,7 @@ The API provides the following resources
 
 | POST | /player |    
 |------|---------|
+
 Create a new player. Original score of player is optional (0 by default)
 
 The payload should be a JSON object with the following properties:
@@ -96,6 +97,7 @@ HTTP code
 
 | PUT | /player |    
 |-----|---------|
+
 Update player score
 
 The payload should be a JSON object with the following properties:
@@ -115,6 +117,7 @@ HTTP code
 
 | GET | /players |    
 |-----|----------|
+
 Get all players sorted by score (highest score first)
 
 *Example* :
@@ -132,6 +135,7 @@ HTTP code
 
 | GET | /player/{pseudo} |    
 |-----|------------------|
+
 Get player data
 
 *Example* :
@@ -147,6 +151,7 @@ HTTP code
 
 | DELETE | /players |    
 |--------|----------|
+
 Remove all players
 
 HTTP code
@@ -155,10 +160,12 @@ HTTP code
 *Example* : `curl -i -X DELETE "http://localhost:8081/players"`
 
 ### Improvements
-* Add authentication
+* Add authentication layer to acces API
 * Add integration tests (end-to-end)
 * Use Docker for DynamoDB for local environment
-* Add a configuration mechanism per environment
-* Improve error handling (add exception)
-* Add logs ()
-* 
+* Add a configuration mechanism per environment (local, integration, pre-prod, prod)
+* Improve error handling (add exceptions)
+* Redirect logs to Elasticsearch instance for monitoring purpose
+* Improve ranking calculation mechanism. Can be time-consuming depending on the number of players.
+* Improve 'Delete all players' implementation. Players are removed one by one (use batch or delete then recreate table ?)
+* Evaluate impact of default billing mode (pay per request) 
