@@ -13,3 +13,14 @@ services:
       - DYNAMODB_SHARE_DB=1
     volumes:
       - "./localstack:/var/lib/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
+  terraform:
+    image: hashicorp/terraform:latest
+    container_name: terraform
+    volumes:
+      - "../infra:/app"
+    working_dir: /app
+    entrypoint: /bin/sh -c "terraform init && terraform apply -auto-approve"
+    depends_on:
+      - localstack

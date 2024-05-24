@@ -9,7 +9,7 @@ provider "aws" {
   skip_region_validation      = true
 
   endpoints {
-    dynamodb = "http://localhost:4566" # Localstack endpoint
+    dynamodb = "http://localstack:4566" # Localstack endpoint
   }
 }
 

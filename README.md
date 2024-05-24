@@ -18,7 +18,6 @@ This API exposes classic CRUD operations and allows to :
 - Gradle
 - Docker
 - Docker Compose
-- Terraform
 - (Optional) NoSQL Workbench for DynamoDB
 
 ## Technical stack
@@ -36,22 +35,16 @@ This application is based upon following technologies :
 
 ## How to launch the application
 1. Clone current git repository
-2. Launch `LocalStack` container instance (local dev only). Wait for the instance to start up completely before continuing
+2. Launch `LocalStack` and `Terraform` container instances (local dev only). Wait for both instances to start up completely before continuing
 ```
 > cd ./docker
 > docker-compose up -d
 ```
-3. Create DynamoDB table `Player` using Terraform and file `dynamodb_player_table.tf`
-```
-> cd ./infra
-> terraform init
-> terraform apply --auto-approve
-```
-4. Edit `startServer.sh` file and fill in variable `DYNAMODB_ENDPOINT` with the appropriate value
+3. Edit `startServer.sh` file and fill in variable `DYNAMODB_ENDPOINT` with the appropriate value
 ```
 DYNAMODB_ENDPOINT=http://localhost:4566
 ```
-5. Build then launch Ktor server packaged as FatJar.
+4. Build then launch Ktor server packaged as FatJar.
 ```
 ./startServer.sh
 ```
@@ -164,7 +157,6 @@ HTTP code
 ### Improvements
 * Add authentication layer to acces API
 * Add integration tests (end-to-end)
-* Use Docker for DynamoDB for local environment
 * Add a configuration mechanism per environment (local, integration, pre-prod, prod)
 * Improve error handling (add exceptions)
 * Redirect logs to Elasticsearch instance for monitoring purpose
